@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send } from 'lucide-react';
+import { Send, ArrowUpRight } from 'lucide-react';
 
 export default function Footer({ onOpenStory }) {
   const [email, setEmail] = useState('');
@@ -134,8 +134,10 @@ export default function Footer({ onOpenStory }) {
             target="_blank" 
             rel="noopener noreferrer" 
             className="built-by-growitate"
+            title="Visit Growitate"
           >
-            BUILT BY <span className="growitate-highlight">GROWITATE</span>
+            <span>BUILT BY</span> <span className="growitate-highlight">GROWITATE</span>
+            <ArrowUpRight size={13} className="growitate-arrow" />
           </a>
         </div>
 

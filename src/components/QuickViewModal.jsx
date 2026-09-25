@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { X, ShoppingBag, ShieldCheck, Sparkles, Check } from 'lucide-react';
+import { X, ShoppingBag, ShieldCheck, Sparkles, Check, ArrowRight } from 'lucide-react';
 
-export default function QuickViewModal({ product, onClose, onAddToCart }) {
+export default function QuickViewModal({ product, onClose, onAddToCart, onViewDetails }) {
   if (!product) return null;
 
   const [selectedSize, setSelectedSize] = useState(product.sizes ? product.sizes[1] || 'L' : 'L');
@@ -14,90 +14,75 @@ export default function QuickViewModal({ product, onClose, onAddToCart }) {
   };
 
   return (
-    <div className="drawer-backdrop" style={{ justifyContent: 'center', alignItems: 'center', padding: '20px' }} onClick={onClose}>
+    <div className="drawer-backdrop qv-modal-backdrop" onClick={onClose}>
       <div 
-        style={{
-          background: '#FFFFFF',
-          borderRadius: '12px',
-          maxWidth: '840px',
-          width: '100%',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          position: 'relative',
-          boxShadow: 'var(--shadow-hover)'
-        }}
+        className="qv-modal-container"
         onClick={(e) => e.stopPropagation()}
       >
         
         {/* Close Button */}
         <button 
-          className="icon-btn" 
+          className="qv-modal-close-btn" 
           onClick={onClose}
           aria-label="Close product modal"
-          style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 10, background: '#FFFFFF', borderRadius: '50%' }}
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
-        {/* Product Image */}
-        <div style={{ background: '#F0ECE6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+        {/* Product Image Column */}
+        <div className="qv-modal-image-col">
           <img 
             src={product.image} 
             alt={product.title} 
-            style={{ width: '100%', maxHeight: '480px', objectFit: 'cover', borderRadius: '8px' }}
+            className="qv-modal-img"
           />
+          {product.gsm && (
+            <div className="qv-modal-gsm-badge">{product.gsm}</div>
+          )}
         </div>
 
-        {/* Product Details */}
-        <div style={{ padding: '36px 32px', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--gold-primary)', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '8px' }}>
-            BLACKTORO • {product.collection || 'SIGNATURE'}
+        {/* Product Details Column */}
+        <div className="qv-modal-info-col">
+          <div className="qv-modal-eyebrow">
+            BLACKTORO • {product.collection || 'CORE'}
           </div>
 
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 900, textTransform: 'uppercase', marginBottom: '12px' }}>
+          <h2 className="qv-modal-title">
             {product.title}
           </h2>
 
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '20px' }}>
-            <span style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0A0A0A' }}>
+          <div className="qv-modal-price-row">
+            <span className="qv-modal-price">
               ₹{product.price.toLocaleString()}
             </span>
             {product.originalPrice && (
-              <span style={{ fontSize: '0.95rem', color: '#999', textDecoration: 'line-through' }}>
+              <span className="qv-modal-orig-price">
                 ₹{product.originalPrice.toLocaleString()}
+              </span>
+            )}
+            {product.originalPrice && (
+              <span className="qv-modal-discount-tag">
+                {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
               </span>
             )}
           </div>
 
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '24px' }}>
+          <p className="qv-modal-desc">
             {product.description || 'Premium heavyweight oversized silhouette crafted with high-density gold emblem embroidery and custom vintage wash.'}
           </p>
 
           {/* Size Selector */}
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 700, marginBottom: '8px' }}>
+          <div className="qv-modal-size-section">
+            <div className="qv-modal-size-header">
               <span>SELECT SIZE</span>
-              <span style={{ color: 'var(--gold-primary)', cursor: 'pointer' }}>Size Guide</span>
+              <span className="qv-modal-size-guide-tag">{product.gsm || '240 GSM'}</span>
             </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="qv-modal-size-options">
               {(product.sizes || ['S', 'M', 'L', 'XL', 'XXL']).map((size) => (
                 <button
                   key={size}
                   onClick={() => setSelectedSize(size)}
-                  style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '4px',
-                    border: selectedSize === size ? '2px solid var(--gold-primary)' : '1px solid var(--border-subtle)',
-                    background: selectedSize === size ? '#0A0A0A' : '#FFFFFF',
-                    color: selectedSize === size ? 'var(--gold-primary)' : '#0A0A0A',
-                    fontWeight: 800,
-                    fontSize: '0.82rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
+                  className={`qv-modal-size-btn ${selectedSize === size ? 'active' : ''}`}
                 >
                   {size}
                 </button>
@@ -106,18 +91,17 @@ export default function QuickViewModal({ product, onClose, onAddToCart }) {
           </div>
 
           {/* Fabric Spec Note */}
-          <div style={{ background: '#F8F6F2', padding: '12px 16px', borderRadius: '6px', fontSize: '0.75rem', color: '#555', display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '28px' }}>
-            <ShieldCheck size={18} color="var(--gold-primary)" />
+          <div className="qv-modal-craft-note">
+            <ShieldCheck size={16} color="#C5A059" />
             <div>
-              <strong>Craftsmanship:</strong> {product.fabric || '240 GSM Heavyweight Cotton'}
+              <strong>Craftsmanship:</strong> {product.fabric || '240 GSM Heavyweight French Terry'}
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div style={{ marginTop: 'auto', display: 'flex', gap: '12px' }}>
+          <div className="qv-modal-actions">
             <button 
-              className={`btn-primary ${added ? 'btn-gold-solid' : ''}`}
-              style={{ flexGrow: 1, justifyContent: 'center' }}
+              className={`btn-primary qv-modal-add-btn ${added ? 'btn-gold-solid' : ''}`}
               onClick={handleAdd}
             >
               {added ? (
@@ -126,10 +110,22 @@ export default function QuickViewModal({ product, onClose, onAddToCart }) {
                 </>
               ) : (
                 <>
-                  <ShoppingBag size={18} /> ADD TO BAG
+                  <ShoppingBag size={18} /> ADD TO BAG • ₹{product.price.toLocaleString()}
                 </>
               )}
             </button>
+
+            {onViewDetails && (
+              <button
+                className="qv-modal-details-btn"
+                onClick={() => {
+                  onClose();
+                  onViewDetails(product);
+                }}
+              >
+                VIEW FULL PRODUCT DETAILS <ArrowRight size={14} />
+              </button>
+            )}
           </div>
 
         </div>

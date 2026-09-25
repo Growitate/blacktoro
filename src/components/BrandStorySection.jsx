@@ -6,17 +6,12 @@ export default function BrandStorySection({ onOpenStory }) {
     <section id="story" className="story-section">
       <div className="max-width-container">
         <div className="story-grid">
-          
+
           {/* Left Dark Intro Card */}
           <div className="story-left-card">
-            <span className="subhead-gold">OUR STORY</span>
-            <h2 className="story-title">
-              A LEGACY<br />
-              REWRITTEN
+            <h2 className="story-title gallery-title">
+              GALLERY
             </h2>
-            <p className="story-body">
-              Born from a respect for history, symbolism, and timeless craftsmanship, Blacktoro creates pieces that connect heritage with evolution.
-            </p>
             <button className="btn-outline" style={{ color: '#FFFFFF', borderColor: '#FFFFFF' }} onClick={onOpenStory}>
               DISCOVER OUR STORY <ArrowRight size={16} />
             </button>

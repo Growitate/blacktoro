@@ -53,7 +53,7 @@ export default function SearchModal({ isOpen, onClose, onSelectProduct }) {
         {/* Popular Tags */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#888', alignSelf: 'center' }}>POPULAR:</span>
-          {['MYTHOS', 'CHRONICLES', 'NOIR', 'HOODIES', 'SIGNATURE'].map((tag) => (
+          {['TOPWEAR', 'HOODIES', 'JERSEY', 'CARGO', 'ACCESSORIES', 'CRICKET'].map((tag) => (
             <button 
               key={tag}
               onClick={() => setQuery(tag)}

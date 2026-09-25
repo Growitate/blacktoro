@@ -1,59 +1,73 @@
 import React, { useState } from 'react';
-import { ArrowRight, Filter, Sparkles, ShieldCheck, Gem, ShoppingBag, Eye } from 'lucide-react';
-import { productsData as products } from '../data/products';
+import { ArrowRight, Sparkles, ShieldCheck, Gem, ShoppingBag, Eye, Heart, Bookmark, Layers, Activity } from 'lucide-react';
+import { productsData as products, collectionsData } from '../data/products';
+import CategoryPage from './CategoryPage';
 
-export default function CollectionsPage({ onAddToCart, onSelectProduct, onNavigate }) {
-  const [selectedFilter, setSelectedFilter] = useState('ALL');
+export default function CollectionsPage({ onAddToCart, onSelectProduct, onNavigate, wishlist = [], onToggleWishlist }) {
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('ALL');
+  const [selectedSubcategoryFilter, setSelectedSubcategoryFilter] = useState('ALL');
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [activeSubcategory, setActiveSubcategory] = useState('ALL');
 
-  const collectionsData = [
-    {
-      id: 'mythos',
-      name: 'MYTHOS SERIES',
-      tagline: 'Ancient Mythological Gold Stamped Rear Insignia',
-      image: '/assets/col_mythos.jpg',
-      gsm: '240 GSM French Terry',
-      pieces: '500 Pieces Worldwide',
-      category: 'Heavyweight Drop',
-      desc: 'Inspired by ancient power symbols. Every tee features an oversized drop-shoulder fit centered with high-density 3D gold foil emblem.'
-    },
-    {
-      id: 'chronicles',
-      name: 'CHRONICLES DROP',
-      tagline: 'Minimalist Cream & Raw Linen Tones',
-      image: '/assets/col_chronicles.jpg',
-      gsm: '260 GSM Organic Cotton',
-      pieces: '300 Pieces Worldwide',
-      category: 'Minimal Luxury',
-      desc: 'Subtle sophistication. Soft cream earth tones with discrete metallic gold bull crest on chest and back.'
-    },
-    {
-      id: 'noir',
-      name: 'NOIR MINIMAL',
-      tagline: 'Obsidian Black Monochrome Luxury',
-      image: '/assets/col_noir.jpg',
-      gsm: '240 GSM Heavyweight Terry',
-      pieces: '400 Pieces Worldwide',
-      category: 'Obsidian Series',
-      desc: 'Pure dark aesthetic. Deep obsidian black fabric paired with subtle matte-gold micro details for understated power.'
-    },
-    {
-      id: 'legends',
-      name: 'LEGENDS EDITION',
-      tagline: 'Vintage Washed Black & Embossed Crest',
-      image: '/assets/col_legends.jpg',
-      gsm: '280 GSM Heavyweight Cotton',
-      pieces: '250 Numbered Editions',
-      category: 'Collector Edition',
-      desc: 'Hand-finished vintage wash giving each tee a unique distressed character and heavy drape.'
-    }
+  // If a category is selected, render its dedicated page
+  if (activeCategory) {
+    return (
+      <CategoryPage
+        categoryId={activeCategory}
+        initialSubcategory={activeSubcategory}
+        onBack={() => {
+          setActiveCategory(null);
+          setActiveSubcategory('ALL');
+        }}
+        onAddToCart={onAddToCart}
+        onSelectProduct={onSelectProduct}
+        wishlist={wishlist}
+        onToggleWishlist={onToggleWishlist}
+      />
+    );
+  }
+
+  // Handle clicking a subcategory pill on the showcase card
+  const handleShowcaseSubcatClick = (e, catId, subcat) => {
+    e.stopPropagation();
+    setActiveCategory(catId);
+    setActiveSubcategory(subcat);
+  };
+
+  // Curated 6 flagship pieces shown in the default ALL drops view
+  const curatedHeroDropIds = [
+    'topwear-plain-tee',
+    'topwear-noir-hoodie',
+    'bottom-cargo-pant',
+    'bottom-terry-shorts',
+    'acc-bull-cap',
+    'jersey-cricket-pro'
   ];
 
-  const filteredProducts = selectedFilter === 'ALL' 
-    ? products 
-    : products.filter(p => p.category.toLowerCase().includes(selectedFilter.toLowerCase()) || p.title.toLowerCase().includes(selectedFilter.toLowerCase()));
+  // Filter products by category and subcategory
+  const filteredProducts = selectedCategoryFilter === 'ALL'
+    ? curatedHeroDropIds.map(id => products.find(p => p.id === id)).filter(Boolean)
+    : products.filter(p => {
+      const matchesCategory =
+        p.category?.toLowerCase() === selectedCategoryFilter.toLowerCase() ||
+        p.collection?.toLowerCase() === selectedCategoryFilter.toLowerCase();
+
+      if (!matchesCategory) return false;
+
+      if (selectedSubcategoryFilter !== 'ALL') {
+        return p.subcategory?.toLowerCase() === selectedSubcategoryFilter.toLowerCase();
+      }
+
+      return true;
+    });
+
+  // Get active subcategories for current filter
+  const currentCategoryObj = collectionsData.find(c => c.name.toLowerCase() === selectedCategoryFilter.toLowerCase());
+  const activeSubcategoriesList = currentCategoryObj ? ['ALL', ...currentCategoryObj.subcategories] : [];
 
   return (
     <div className="collections-page">
+
       {/* Collections Hero Header */}
       <section className="collections-hero-header">
         <div className="max-width-container">
@@ -63,7 +77,7 @@ export default function CollectionsPage({ onAddToCart, onSelectProduct, onNaviga
               EXPLORE OUR <span className="gold-gradient-text">COLLECTIONS</span>
             </h1>
             <p className="collections-page-desc">
-              Discover curated drops crafted with 240 GSM luxury French Terry cotton, bespoke gold foil emblems, and strict limited numbering.
+              Explore the four core pillars of BLACKTORO streetwear — from heavyweight Topwear and engineered Bottoms to pro-cut Jerseys and bespoke Accessories.
             </p>
           </div>
         </div>
@@ -74,18 +88,75 @@ export default function CollectionsPage({ onAddToCart, onSelectProduct, onNaviga
         <div className="max-width-container">
           <div className="collections-showcase-grid">
             {collectionsData.map((col) => (
-              <div key={col.id} className="collection-card-luxe" onClick={() => setSelectedFilter(col.id.toUpperCase())}>
-                <div className="col-card-image-wrap">
-                  <img src={col.image} alt={col.name} className="col-card-img" />
+              <div key={col.id} className="collection-card-luxe">
+                <div
+                  className="col-card-image-wrap"
+                  onClick={() => {
+                    setActiveCategory(col.id);
+                    setActiveSubcategory('ALL');
+                  }}
+                  style={{ cursor: 'pointer' }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setActiveCategory(col.id);
+                      setActiveSubcategory('ALL');
+                    }
+                  }}
+                  aria-label={`View ${col.name} collection`}
+                >
+                  <picture className="col-card-picture">
+                    {col.desktopImage && (
+                      <source media="(min-width: 769px)" srcSet={col.desktopImage} />
+                    )}
+                    <img src={col.image} alt={col.name} className="col-card-img" />
+                  </picture>
                   <div className="col-card-badge">{col.gsm}</div>
                 </div>
+
                 <div className="col-card-info">
-                  <span className="col-card-pieces">{col.pieces}</span>
-                  <h3 className="col-card-title">{col.name}</h3>
+                  <div className="col-card-top-row">
+                    <h3
+                      className="col-card-title"
+                      onClick={() => {
+                        setActiveCategory(col.id);
+                        setActiveSubcategory('ALL');
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {col.name}
+                    </h3>
+                  </div>
+
                   <p className="col-card-tagline">{col.tagline}</p>
-                  <p className="col-card-desc">{col.desc}</p>
-                  <button className="btn-explore-col">
-                    VIEW COLLECTION <ArrowRight size={14} />
+
+                  {/* Visible Subcategories Pill Row */}
+                  <div className="col-card-subcategories-section">
+                    <span className="col-subcat-label">SUBCATEGORIES:</span>
+                    <div className="col-subcat-pills-row">
+                      {col.subcategories.map((sub) => (
+                        <button
+                          key={sub}
+                          className="col-subcat-chip"
+                          onClick={(e) => handleShowcaseSubcatClick(e, col.id, sub)}
+                          title={`Explore ${sub} in ${col.name}`}
+                        >
+                          <span>{sub}</span>
+                          <ArrowRight size={11} className="col-subcat-arrow" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    className="btn-explore-col"
+                    onClick={() => {
+                      setActiveCategory(col.id);
+                      setActiveSubcategory('ALL');
+                    }}
+                  >
+                    VIEW {col.name} <ArrowRight size={14} />
                   </button>
                 </div>
               </div>
@@ -99,60 +170,124 @@ export default function CollectionsPage({ onAddToCart, onSelectProduct, onNaviga
         <div className="max-width-container">
           <div className="catalog-header-bar">
             <div>
+              <span className="catalog-gold-tag">
+                {selectedCategoryFilter === 'ALL' ? 'CURATED ATELIER CAPSULE' : `${selectedCategoryFilter} SELECTION`}
+              </span>
               <h2 className="catalog-title">AVAILABLE DROPS</h2>
-              <p className="catalog-sub">Showing {filteredProducts.length} limited pieces</p>
+              <p className="catalog-sub">
+                {selectedCategoryFilter === 'ALL'
+                  ? 'Showing 6 curated flagship silhouettes from current season drops'
+                  : `Showing ${filteredProducts.length} pieces in ${selectedCategoryFilter}${selectedSubcategoryFilter !== 'ALL' ? ` • ${selectedSubcategoryFilter}` : ''}`}
+              </p>
             </div>
 
-            {/* Filter Buttons */}
+            {/* Main Category Filter Buttons */}
             <div className="filter-buttons-row">
-              {['ALL', 'MYTHOS', 'CHRONICLES', 'NOIR', 'LEGENDS'].map((f) => (
-                <button 
-                  key={f}
-                  className={`btn-filter-tab ${selectedFilter === f ? 'active' : ''}`}
-                  onClick={() => setSelectedFilter(f)}
+              {['ALL', 'TOPWEAR', 'BOTTOM', 'ACCESSORIES', 'JERSEY'].map((cat) => (
+                <button
+                  key={cat}
+                  className={`btn-filter-tab ${selectedCategoryFilter === cat ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedCategoryFilter(cat);
+                    setSelectedSubcategoryFilter('ALL');
+                  }}
                 >
-                  {f === 'ALL' ? 'ALL DROPS' : f}
+                  {cat === 'ALL' ? 'ALL CATEGORIES' : cat}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Dynamic Subcategory Filter Pills (Visible when category is selected) */}
+          {selectedCategoryFilter !== 'ALL' && activeSubcategoriesList.length > 0 && (
+            <div className="subcategory-filter-bar">
+              <span className="subcat-bar-label">SUBCATEGORY:</span>
+              <div className="subcat-bar-chips">
+                {activeSubcategoriesList.map((sub) => (
+                  <button
+                    key={sub}
+                    className={`btn-subcat-pill ${selectedSubcategoryFilter === sub ? 'active' : ''}`}
+                    onClick={() => setSelectedSubcategoryFilter(sub)}
+                  >
+                    {sub === 'ALL' ? `All ${selectedCategoryFilter}` : sub}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Product Grid */}
           <div className="products-grid">
-            {filteredProducts.map((prod) => (
-              <div key={prod.id} className="product-card">
-                <div className="product-img-wrap" onClick={() => onSelectProduct(prod)}>
-                  <img src={prod.image} alt={prod.title} className="product-img" />
-                  {prod.badge && <span className="product-badge">{prod.badge}</span>}
-                  
-                  <div className="product-hover-actions">
-                    <button 
-                      className="quick-view-btn"
-                      onClick={(e) => { e.stopPropagation(); onSelectProduct(prod); }}
-                    >
-                      <Eye size={16} /> QUICK VIEW
-                    </button>
-                  </div>
-                </div>
+            {filteredProducts.map((prod) => {
+              const isSaved = wishlist.includes(prod.id);
+              return (
+                <div className="product-card" key={prod.id}>
 
-                <div className="product-info">
-                  <span className="product-cat">{prod.category || 'OVERSIZED TEE'}</span>
-                  <h3 className="product-title" onClick={() => onSelectProduct(prod)}>{prod.title}</h3>
-                  
-                  <div className="product-footer-row">
-                    <div className="product-price">₹{prod.price.toLocaleString()}</div>
-                    <button 
-                      className="btn-add-cart"
-                      onClick={() => onAddToCart(prod)}
-                    >
-                      <ShoppingBag size={14} /> ADD
-                    </button>
+                  {/* Wishlist Button */}
+                  <button
+                    className={`bookmark-btn ${isSaved ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleWishlist && onToggleWishlist(prod.id);
+                    }}
+                    title={isSaved ? "Saved to Wishlist" : "Save to Wishlist"}
+                    aria-label="Wishlist"
+                  >
+                    <Bookmark size={15} fill={isSaved ? "var(--gold-primary)" : "none"} />
+                  </button>
+
+                  {/* Product Image & Quick View trigger */}
+                  <div
+                    className="product-img-wrap"
+                    onClick={() => onSelectProduct && onSelectProduct(prod)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <img
+                      src={prod.image}
+                      alt={prod.title}
+                      className="product-img"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/assets/core_logo_tee.jpg';
+                      }}
+                    />
+                    {prod.badge && <span className="product-badge">{prod.badge}</span>}
+                    <div className="product-subcat-tag">
+                      {prod.subcategory || prod.category}
+                    </div>
                   </div>
+
+                  {/* Product Details */}
+                  <div className="product-details">
+                    <div
+                      className="product-title"
+                      onClick={() => onSelectProduct && onSelectProduct(prod)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {prod.title}
+                    </div>
+
+                    <div className="product-price-row">
+                      <span className="product-price">₹{prod.price.toLocaleString()}</span>
+
+                      <button
+                        className="add-cart-mini-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddToCart && onAddToCart(prod);
+                        }}
+                        title="Add to Cart"
+                        aria-label="Add to Cart"
+                      >
+                        <ShoppingBag size={16} />
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-
         </div>
       </section>
 
@@ -162,18 +297,23 @@ export default function CollectionsPage({ onAddToCart, onSelectProduct, onNaviga
           <div className="craftsmanship-grid">
             <div className="craft-item">
               <Gem className="text-gold" size={24} />
-              <h4>240 GSM LUXURY TERRY</h4>
-              <p>Heavyweight pre-shrunk cotton engineered for structured drape and comfort.</p>
+              <h4>TOPWEAR — 240+ GSM</h4>
+              <p>Heavyweight French Terry tees, drop-shoulder fleece hoodies, and crewneck sweatshirts.</p>
             </div>
             <div className="craft-item">
-              <Sparkles className="text-gold" size={24} />
-              <h4>3D GOLD FOIL EMBOSSING</h4>
-              <p>High-density metallic gold insignia stamped under high-precision pressure.</p>
+              <Layers className="text-gold" size={24} />
+              <h4>BOTTOM — TAILORED & LOUNGE</h4>
+              <p>Heavyweight French Terry half pants and 6-pocket utility cargo full pants.</p>
+            </div>
+            <div className="craft-item">
+              <Activity className="text-gold" size={24} />
+              <h4>JERSEY — PRO ATHLETIC</h4>
+              <p>Moisture-wicking aero-knit cricket, football match kits, basketball & hockey jerseys.</p>
             </div>
             <div className="craft-item">
               <ShieldCheck className="text-gold" size={24} />
-              <h4>STRICT 500 NUMBERED RUNS</h4>
-              <p>Every piece belongs to an exclusive limited batch. No restocks ever.</p>
+              <h4>ACCESSORIES — BESPOKE</h4>
+              <p>3D raised bullion caps, weatherproof ballistic crossbody bags, and ribbed cushion socks.</p>
             </div>
           </div>
         </div>
